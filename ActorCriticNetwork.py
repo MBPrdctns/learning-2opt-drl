@@ -268,7 +268,7 @@ class Decoder(nn.Module):
         pointers = []
         log_probs_pts = []
         entropy = []
-        for i in range(self.n_actions):
+        for i in range(self.n_actions): #default n_actions is 2
             if i == 0:
                 # if it's the first output mask the last index
                 mask[:, -1] = 0
@@ -293,7 +293,7 @@ class Decoder(nn.Module):
                 indices = actions[:, i]
                 log_probs_idx = c.log_prob(indices)
                 dist_entropy = c.entropy()
-
+            #print("log_probs_idx: ", log_probs_idx)
             repeat_indices = indices.unsqueeze(1).expand(-1, n_nodes)
 
             # 1-pointers probs indices i.e. if idx= 4 and len = 5
@@ -320,13 +320,16 @@ class Decoder(nn.Module):
             probs.append(prob.unsqueeze(0))
             pointers.append(indices.unsqueeze(1))
             log_probs_pts.append(log_probs_idx.unsqueeze(1))
+            #print("log_probs.unsqueeze: ", log_probs_idx.unsqueeze(1))
             entropy.append(dist_entropy.unsqueeze(1))
 
         probs = torch.cat(probs).permute(1, 0, 2)
 
         # pointers: index outputs (batch_size, n_actions)
         pointers = torch.cat(pointers, 1)
+        #print("torch.cat(logprobs): ", torch.cat(log_probs_pts, 1))
         log_probs_pts = torch.cat(log_probs_pts, 1)
+        
         entropies = torch.cat(entropy, 1)
 
         return probs, pointers, log_probs_pts, entropies
